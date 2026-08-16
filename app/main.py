@@ -10,3 +10,12 @@ async def home():
         "version": "0.1.0",
         "status": "running",
     }
+
+
+@app.get("/about")
+async def about():
+    return {
+        "developer": "Richmond Wiafe",
+        "project": "FastAPI Blog",
+        "language": "Python",
+    }
