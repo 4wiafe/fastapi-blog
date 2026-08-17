@@ -1,5 +1,6 @@
 from typing import Annotated
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException, status
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -76,6 +77,14 @@ fake_posts_db = [
         "published": True,
     },
 ]
+
+
+class PostCreate(BaseModel):
+    post_id: int
+    title: str
+    content: str
+    author: str
+    published: bool = True
 
 
 @app.get("/")
@@ -156,3 +165,8 @@ async def get_post(post_id: int):
             return post
 
     return {"error": "Post not found"}
+
+
+@app.post("/posts")
+async def create_post(post: PostCreate):
+    return post.model_dump()
