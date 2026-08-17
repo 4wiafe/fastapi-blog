@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import FastAPI, Query, HTTPException, status
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -130,8 +130,11 @@ async def get_posts(skip: int = 0, limit: int = 10):
 
 @app.get("/posts/search")
 async def search_posts(
-    q: Annotated[str | None, Query(min_length=2, max_length=50)] = None,
-    limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    q: Annotated[
+        str | None,
+        Query(min_length=3, max_length=30, description="Search posts by title"),
+    ] = None,
+    limit: Annotated[int, Query(ge=1, le=20, description="Cap the list of posts")] = 20,
 ):
     results = fake_posts_db
 
