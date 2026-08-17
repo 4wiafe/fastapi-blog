@@ -178,7 +178,7 @@ async def create_post(post: PostCreate):
 
 
 @app.get("/posts/{post_id}/rating")
-async def post_rating(
+async def get_post_rating(
     post_id: Annotated[int, Path(title="The ID of the post to rate", ge=1)],
     rating: Annotated[float, Query(gt=0, le=5)],
 ):
