@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Path
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -162,7 +162,9 @@ async def filter_posts(
 
 
 @app.get("/posts/{post_id}")
-async def get_post(post_id: int):
+async def get_post(
+    post_id: Annotated[int, Path(title="The ID of the post to retrieve", ge=1)],
+):
     for post in fake_posts_db:
         if post["post_id"] == post_id:
             return post
@@ -173,3 +175,17 @@ async def get_post(post_id: int):
 @app.post("/posts")
 async def create_post(post: PostCreate):
     return post.model_dump()
+
+
+@app.get("/posts/{post_id}/rating")
+async def post_rating(
+    post_id: Annotated[int, Path(title="The ID of the post to rate", ge=1)],
+    rating: Annotated[float, Query(gt=0, le=5)],
+):
+    for post in fake_posts_db:
+        if post["post_id"] == post_id:
+            post["rating"] = rating
+
+            return {"post_id": post_id, "rating": rating}
+
+    return {"error": "Post not found."}
