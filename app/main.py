@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi import FastAPI, Query, Path
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 app = FastAPI()
 
@@ -87,6 +87,13 @@ class PostCreate(BaseModel):
     published: bool = True
 
 
+class PostFilterParams(BaseModel):
+    limit: int = Field(10, ge=1, le=100)
+    offset: int = Field(0, ge=0)
+    author: str | None = None
+    published: bool = True
+
+
 @app.get("/")
 async def home():
     return {
@@ -124,8 +131,17 @@ async def get_user(user_id: int):
 
 
 @app.get("/posts")
-async def get_posts(skip: int = 0, limit: int = 10):
-    return fake_posts_db[skip : skip + limit]
+async def get_posts(filters: Annotated[PostFilterParams, Query()]):
+    results = fake_posts_db
+
+    if filters.author:
+        results = [
+            post for post in results if filters.author.lower() in post["author"].lower()
+        ]
+
+    results = [post for post in results if post["published"] == filters.published]
+
+    return results[filters.offset : filters.offset + filters.limit]
 
 
 @app.get("/posts/search")
@@ -144,23 +160,6 @@ async def search_posts(
     return results[:limit]
 
 
-@app.get("/posts/filter")
-async def filter_posts(
-    author: Annotated[str | None, Query(min_length=3)] = None, published: bool = True
-):
-    results = fake_posts_db
-
-    if author or published:
-        results = [
-            post
-            for post in fake_posts_db
-            if (author is None or author.lower() in post["author"].lower())
-            and published == post["published"]
-        ]
-
-    return results
-
-
 @app.get("/posts/{post_id}")
 async def get_post(
     post_id: Annotated[int, Path(title="The ID of the post to retrieve", ge=1)],
@@ -177,7 +176,7 @@ async def create_post(post: PostCreate):
     return post.model_dump()
 
 
-@app.get("/posts/{post_id}/rating")
+@app.post("/posts/{post_id}/rating")
 async def get_post_rating(
     post_id: Annotated[int, Path(title="The ID of the post to rate", ge=1)],
     rating: Annotated[float, Query(gt=0, le=5)],
