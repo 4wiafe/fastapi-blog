@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import FastAPI, Query, Path
+from fastapi import FastAPI, Query, Path, Body
 from pydantic import BaseModel, Field
 
 app = FastAPI()
@@ -80,7 +80,13 @@ fake_posts_db = [
 
 
 class PostCreate(BaseModel):
-    post_id: int
+    title: str
+    content: str
+    author: str
+    published: bool = True
+
+
+class PostUpdate(BaseModel):
     title: str
     content: str
     author: str
@@ -188,3 +194,38 @@ async def get_post_rating(
             return {"post_id": post_id, "rating": rating}
 
     return {"error": "Post not found."}
+
+
+@app.put("/post/{post_id}")
+async def update_post(
+    post_id: Annotated[int, Path(title="The ID of post to pdate", ge=1)],
+    post: PostUpdate,
+    q: str | None = None,
+):
+    for existing_post in fake_posts_db:
+        if existing_post["post_id"] == post_id:
+            existing_post.update(post.model_dump())
+
+            return {"post_id": post_id, "post": post, "q": q}
+
+    return {"error": "Post not found"}
+
+
+@app.put("/posts/{post_id}/publish")
+async def publish_post_update(
+    post_id: Annotated[int, Path(ge=1)],
+    published: Annotated[bool, Body()],
+    reason: str | None = None,
+):
+    for existing_post in fake_posts_db:
+        if existing_post["post_id"] == post_id:
+            existing_post.update(
+                {
+                    "published": published,
+                    "reason": reason,
+                }
+            )
+
+            return existing_post
+
+    return {"error": "Post not found"}
