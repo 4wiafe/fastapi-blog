@@ -100,6 +100,16 @@ class PostFilterParams(BaseModel):
     published: bool = True
 
 
+class AuthorUpdate(BaseModel):
+    name: str
+    bio: str | None = None
+
+
+class PostMetadata(BaseModel):
+    category: str
+    featured: bool = False
+
+
 @app.get("/")
 async def home():
     return {
@@ -229,3 +239,24 @@ async def publish_post_update(
             return existing_post
 
     return {"error": "Post not found"}
+
+
+@app.put("/posts/{post_id}/metadata")
+async def update_author_metadata(
+    post_id: Annotated[int, Path(title="The ID of post to update", ge=1)],
+    author: Annotated[AuthorUpdate, Body()],
+    metadata: Annotated[PostMetadata, Body()],
+    q: str | None = None,
+):
+    for existing_post in fake_posts_db:
+        if existing_post["post_id"] == post_id:
+            existing_post.update(author.model_dump())
+            existing_post.update(metadata.model_dump())
+
+            return {
+                "author": author,
+                "metadata": metadata,
+                "q": q,
+            }
+
+    return {"error": "Post not found."}
