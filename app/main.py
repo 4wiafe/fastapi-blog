@@ -80,9 +80,24 @@ fake_posts_db = [
 
 
 class PostCreate(BaseModel):
-    title: str
-    content: str
-    author: str
+    title: str = Field(
+        min_length=3,
+        max_length=100,
+        title="The title of the blog post.",
+    )
+
+    content: str = Field(
+        min_length=10,
+        max_length=5000,
+        title="The content of the blog post.",
+    )
+
+    author: str = Field(
+        min_length=3,
+        max_length=100,
+        title="The author of the blog post",
+    )
+
     published: bool = True
 
 
