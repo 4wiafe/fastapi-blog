@@ -8,6 +8,6 @@ async def home():
     return {"message": "Welcome to my blog"}
 
 
-@app.get("/health")
+@app.get("/healthcheck")
 async def check_health():
     return {"status": "ok"}

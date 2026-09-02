@@ -9,6 +9,8 @@ authors = [
 requires-python = ">=3.15"
 dependencies = [
     "fastapi[standard]>=0.141.1",
+    "sqlalchemy[asyncio]>=2.0.52",
+    "sqlmodel>=0.0.42",
 ]
 
 [project.scripts]
